@@ -21,6 +21,16 @@ mail client.
 
 ## Install
 
+Install straight from the repo:
+
+```sh
+go install github.com/st3fan/checkemail@latest
+```
+
+This puts the `checkemail` binary in `$(go env GOPATH)/bin`.
+
+Or build from a checkout:
+
 ```sh
 go build -o checkemail .
 ```
@@ -122,6 +132,35 @@ size but never decoded.
   STARTTLS path.
 - **No sending.** There is no code path that can send, reply, edit or delete
   mail. `archive` is the only command that changes anything, and it only moves.
+
+## How to make your agent use this
+
+`checkemail` is not an MCP server or a plugin; it is a plain command-line tool.
+An agent uses it the same way a person would: by running it in a shell. So you
+make your agent use it by telling the agent that the tool exists, what it is
+for, and the exact commands to run.
+
+A prompt that works well:
+
+```text
+You have a tool called `checkemail` for reading email from test accounts.
+Use it to complete email-driven flows (signup, password reset, magic links).
+
+- List unread mail:   checkemail list <account> -n 20 -unread
+- Read one message:   checkemail read <account> "<folder>:<uid>"
+- Archive it:         checkemail archive <account> "<folder>:<uid>"
+
+The account name is printed by `checkemail accounts`. `list` never marks mail
+read, so it is safe to poll. Read the `ID:` field, not the list index. Exit
+status is 0 on success, 1 on error, with `ERROR: <message>` on stderr.
+```
+
+Give the agent the real account names (or let it discover them with
+`checkemail accounts`) and the loop is self-contained: poll with `list`, act on
+the `ID:` it prints with `read`, then `archive` once the mail has been dealt
+with. Nothing else needs to change on the agent side.
+
+(This should probably be a skill)
 
 ## Agent notes
 
